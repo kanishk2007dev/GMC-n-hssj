@@ -13,12 +13,21 @@
             font-family: 'Inter', sans-serif;
             background-color: #f7f9fb;
         }
+        .data-table th, .data-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: left;
+        }
+        .data-table th {
+            background-color: #f3f4f6;
+            font-weight: 600;
+        }
     </style>
 </head>
-<body class="p-4 sm:p-8 min-h-screen flex items-center justify-center">
+<body class="p-4 sm:p-8 min-h-screen flex flex-col items-center justify-start">
 
-    <!-- Main Container -->
-    <div id="app-container" class="w-full max-w-lg bg-white shadow-2xl rounded-xl p-6 sm:p-10 border border-indigo-100">
+    <!-- Main Container (Feedback Submission) -->
+    <div id="app-container" class="w-full max-w-lg bg-white shadow-2xl rounded-xl p-6 sm:p-10 border border-indigo-100 mb-8">
         <h1 class="text-3xl font-extrabold text-indigo-700 text-center mb-4">Authorized Feedback System</h1>
         <p class="text-center text-gray-500 mb-8">
             Please enter your mobile number. This system is only for **Authorized Contacts**.
@@ -28,7 +37,7 @@
         <div class="mb-6 space-y-2">
             <p id="status-message" class="text-sm font-medium text-center text-red-600 transition duration-300"></p>
             <p class="text-xs text-gray-400 text-center">
-                User ID: <span id="user-id" class="font-mono text-gray-500">Loading...</span>
+                App/User ID: <span id="user-id" class="font-mono text-gray-500">Loading...</span>
             </p>
         </div>
 
@@ -88,23 +97,75 @@
         
         <!-- Admin Section for Adding Contacts (For Demonstration/Easy Setup) -->
         <div class="mt-8 pt-6 border-t border-gray-200">
-            <h3 class="text-lg font-semibold text-gray-700 mb-2">Admin Setup (Demo)</h3>
-            <p class="text-sm text-gray-500 mb-4">Use this section to add Authorized Contacts for testing.</p>
-            <div class="flex space-x-2">
+            <h3 class="text-lg font-semibold text-gray-700 mb-2">Admin Setup (Add Authorized Contact)</h3>
+            <p class="text-sm text-gray-500 mb-4">Use this section to add users who are allowed to give feedback.</p>
+            <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                 <input type="text" id="adminName" placeholder="Name" class="flex-1 px-3 py-2 border rounded-lg text-sm">
-                <input type="tel" id="adminMobile" maxlength="10" placeholder="Mobile Number (10 Digits)" class="flex-1 px-3 py-2 border rounded-lg text-sm">
-                <button onclick="addAuthorizedContact()" class="bg-blue-500 hover:bg-blue-600 text-white text-sm px-3 py-2 rounded-lg">Add</button>
+                <input type="tel" id="adminMobile" maxlength="10" placeholder="Mobile No. (10 Digits)" class="flex-1 px-3 py-2 border rounded-lg text-sm">
+                <button onclick="addAuthorizedContact()" class="bg-blue-500 hover:bg-blue-600 text-white text-sm px-3 py-2 rounded-lg transition duration-150">Add</button>
             </div>
             <p id="admin-message" class="mt-2 text-xs text-center text-blue-600"></p>
         </div>
+    </div>
+    
+    <!-- Admin Login Section -->
+    <div id="admin-login-section" class="w-full max-w-4xl bg-yellow-50 shadow-lg rounded-xl p-6 sm:p-8 border border-yellow-200 mb-8 text-center">
+        <h2 class="text-2xl font-bold text-yellow-800 mb-4">Admin Data View (Protected)</h2>
+        <p class="text-sm text-gray-600 mb-4">Enter the password to view all authorized contacts and feedback submissions.</p>
+        <div class="flex flex-col sm:flex-row justify-center items-center space-y-2 sm:space-y-0 sm:space-x-4 max-w-sm mx-auto">
+            <input type="password" id="admin-password" placeholder="Password" class="flex-1 px-4 py-2 border border-yellow-300 rounded-lg w-full">
+            <button onclick="adminLogin()" class="w-full sm:w-auto py-2 px-6 bg-yellow-600 hover:bg-yellow-700 text-white font-medium rounded-lg transition duration-150">Login</button>
+        </div>
+        <p id="admin-login-message" class="mt-3 text-sm font-medium text-red-600"></p>
+    </div>
 
+    <!-- Data Display Section (Protected) -->
+    <div id="data-view-protected" class="w-full max-w-4xl bg-white shadow-2xl rounded-xl p-6 sm:p-10 border border-gray-100 hidden">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-2">Real-time Data View</h2>
+
+        <!-- Authorized Contacts Table -->
+        <div class="mb-8">
+            <h3 class="text-xl font-semibold text-blue-600 mb-4">1. Authorized Contacts</h3>
+            <div class="overflow-x-auto rounded-lg border border-blue-200">
+                <table id="contacts-table" class="data-table w-full text-sm text-left text-gray-500">
+                    <thead>
+                        <tr>
+                            <th scope="col" class="py-3 px-6">Name</th>
+                            <th scope="col" class="py-3 px-6">Mobile</th>
+                        </tr>
+                    </thead>
+                    <tbody id="contacts-list">
+                        <tr><td colspan="2" class="text-center py-4">Awaiting Admin Login...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Feedback Submissions Table -->
+        <div>
+            <h3 class="text-xl font-semibold text-green-600 mb-4">2. Feedback Submissions</h3>
+            <div class="overflow-x-auto rounded-lg border border-green-200">
+                <table id="feedback-table" class="data-table w-full text-sm text-left text-gray-500">
+                    <thead>
+                        <tr>
+                            <th scope="col" class="py-3 px-6">Name</th>
+                            <th scope="col" class="py-3 px-6">Rating</th>
+                            <th scope="col" class="py-3 px-6">Comment</th>
+                        </tr>
+                    </thead>
+                    <tbody id="feedback-list">
+                        <tr><td colspan="3" class="text-center py-4">Awaiting Admin Login...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
     <!-- Firebase SDK Imports -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, addDoc, collection, query, where, getDocs, serverTimestamp, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, addDoc, collection, query, where, getDocs, serverTimestamp, setLogLevel, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Global Firebase variables
         window.db = null;
@@ -112,7 +173,13 @@
         window.userId = null;
         window.appId = null;
         window.validatedUserData = null;
+        window.isAuthReady = false; // Flag to ensure Firestore queries wait for auth
         
+        // --- ADMIN PASSWORD CONFIGURATION ---
+        const ADMIN_PASSWORD = "2007"; 
+        // NOTE: In a production app, this password should be stored securely on a backend server, not hardcoded here.
+        // --- END PASSWORD CONFIGURATION ---
+
         // Use the globally available variables
         const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
@@ -152,17 +219,109 @@
             onAuthStateChanged(window.auth, (user) => {
                 if (user) {
                     window.userId = user.uid;
-                    document.getElementById('user-id').textContent = window.userId;
+                    document.getElementById('user-id').textContent = `${window.appId} / ${window.userId}`;
+                    window.isAuthReady = true;
                     console.log("Authenticated with user ID:", window.userId);
+                    // NOTE: setupRealtimeListeners is now called only after successful adminLogin()
                 } else {
                     document.getElementById('user-id').textContent = 'Signed Out';
+                    window.isAuthReady = false;
                 }
             });
         }
+        
+        // --- ADMIN LOGIN FUNCTION ---
+        window.adminLogin = function() {
+            const passwordInput = document.getElementById('admin-password');
+            const password = passwordInput.value;
+            const loginMessage = document.getElementById('admin-login-message');
 
-        // --- CORE APPLICATION LOGIC ---
+            if (password === ADMIN_PASSWORD) {
+                if (!window.db || !window.isAuthReady) {
+                    loginMessage.textContent = "Authentication is still initializing. Please wait and try logging in again.";
+                    return;
+                }
+                
+                loginMessage.textContent = "Login Successful! Loading data...";
+                loginMessage.className = "mt-3 text-sm font-medium text-green-600";
+                
+                // Show data view and start listeners
+                document.getElementById('admin-login-section').classList.add('hidden');
+                document.getElementById('data-view-protected').classList.remove('hidden');
+                setupRealtimeListeners();
+            } else {
+                loginMessage.textContent = "Invalid Password. Access Denied.";
+                loginMessage.className = "mt-3 text-sm font-medium text-red-600";
+            }
+        };
 
-        // 1. Mobile Number Validation
+        // --- REAL-TIME DATA LISTENERS ---
+        function setupRealtimeListeners() {
+            if (!window.db || !window.isAuthReady) return;
+
+            // 1. Authorized Contacts Listener
+            const contactsRef = collection(window.db, `artifacts/${window.appId}/public/data/authorized_contacts`);
+            onSnapshot(contactsRef, (snapshot) => {
+                const list = document.getElementById('contacts-list');
+                list.innerHTML = '';
+                if (snapshot.empty) {
+                    list.innerHTML = '<tr><td colspan="2" class="text-center py-4 text-gray-400">No authorized contacts saved yet.</td></tr>';
+                    return;
+                }
+                
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const row = `
+                        <tr class="hover:bg-blue-50/50">
+                            <td class="py-2 px-6 font-medium text-gray-900">${data.name}</td>
+                            <td class="py-2 px-6 font-mono text-indigo-700">${data.mobile}</td>
+                        </tr>
+                    `;
+                    list.innerHTML += row;
+                });
+            }, (error) => {
+                console.error("Error listening to contacts:", error);
+                document.getElementById('contacts-list').innerHTML = `<tr><td colspan="2" class="text-center py-4 text-red-500">Error loading contacts.</td></tr>`;
+            });
+
+            // 2. Feedback Submissions Listener
+            const feedbackRef = collection(window.db, `artifacts/${window.appId}/public/data/feedback_submissions`);
+            
+            onSnapshot(feedbackRef, (snapshot) => {
+                const list = document.getElementById('feedback-list');
+                list.innerHTML = '';
+                if (snapshot.empty) {
+                    list.innerHTML = '<tr><td colspan="3" class="text-center py-4 text-gray-400">No feedback submissions yet.</td></tr>';
+                    return;
+                }
+                
+                const feedbackData = [];
+                snapshot.forEach(doc => {
+                    feedbackData.push(doc.data());
+                });
+
+                // In-memory sort by timestamp descending for latest first
+                feedbackData.sort((a, b) => (b.timestamp?.toMillis() || 0) - (a.timestamp?.toMillis() || 0));
+
+                feedbackData.forEach(data => {
+                    const ratingStars = '★'.repeat(data.rating) + '☆'.repeat(5 - data.rating);
+                    const row = `
+                        <tr class="hover:bg-green-50/50">
+                            <td class="py-2 px-6 font-medium text-gray-900">${data.name}</td>
+                            <td class="py-2 px-6 text-yellow-500 font-bold">${ratingStars}</td>
+                            <td class="py-2 px-6">${data.comments || "No comment provided."}</td>
+                        </tr>
+                    `;
+                    list.innerHTML += row;
+                });
+            }, (error) => {
+                console.error("Error listening to feedback:", error);
+                document.getElementById('feedback-list').innerHTML = `<tr><td colspan="3" class="text-center py-4 text-red-500">Error loading feedback.</td></tr>`;
+            });
+        }
+
+        // --- CORE APPLICATION LOGIC (Same as before) ---
+
         window.validateContact = async function() {
             const mobileNoInput = document.getElementById('mobileNo');
             const mobileNo = mobileNoInput.value.trim();
@@ -173,7 +332,7 @@
                 return;
             }
 
-            if (!window.db || !window.userId) {
+            if (!window.db || !window.isAuthReady) {
                  showStatus("Database is still loading, please wait.", true);
                  return;
             }
@@ -182,33 +341,28 @@
             validateBtn.disabled = true;
 
             try {
-                // Query the 'authorized_contacts' collection
                 const contactsRef = collection(window.db, `artifacts/${window.appId}/public/data/authorized_contacts`);
                 const q = query(contactsRef, where("mobile", "==", mobileNo));
                 
                 const querySnapshot = await getDocs(q);
 
                 if (querySnapshot.empty) {
-                    // Contact is NOT authorized
                     showStatus("❌ Your mobile number is not Authorized. You cannot submit feedback.", true);
                     document.getElementById('feedback-section').classList.add('hidden');
                     window.validatedUserData = null;
                 } else {
-                    // Contact is authorized!
                     const docData = querySnapshot.docs[0].data();
                     window.validatedUserData = { 
                         mobile: mobileNo, 
                         name: docData.name || "Unknown User" 
                     };
 
-                    // Update the UI for the feedback form
                     document.getElementById('validated-name').textContent = window.validatedUserData.name;
                     document.getElementById('validated-mobile').textContent = window.validatedUserData.mobile;
                     
                     document.getElementById('validation-section').classList.add('hidden');
                     document.getElementById('feedback-section').classList.remove('hidden');
                     
-                    // Updated message to emphasize auto-population
                     showStatus(`✅ Details found! Welcome, ${window.validatedUserData.name}. Your profile is loaded. Please submit your feedback.`, false);
                 }
 
@@ -220,7 +374,6 @@
             }
         };
 
-        // 2. Feedback Submission
         window.submitFeedback = async function() {
             if (!window.validatedUserData) {
                 showStatus("Please validate your mobile number first.", true);
@@ -236,7 +389,7 @@
                 return;
             }
 
-            if (!window.db || !window.userId) {
+            if (!window.db || !window.isAuthReady) {
                  showStatus("Database is still loading, please wait.", true);
                  return;
             }
@@ -276,7 +429,6 @@
             }
         };
 
-        // --- ADMIN DEMO FUNCTION ---
         window.addAuthorizedContact = async function() {
             const adminName = document.getElementById('adminName').value.trim();
             const adminMobile = document.getElementById('adminMobile').value.trim();
@@ -288,13 +440,14 @@
                 return;
             }
 
-            if (!window.db) {
-                 adminMsgEl.textContent = "Database not loaded.";
+            if (!window.db || !window.isAuthReady) {
+                 adminMsgEl.textContent = "Database not ready. Please wait for initialization.";
                  adminMsgEl.className = "mt-2 text-xs text-center text-red-600";
                  return;
             }
 
             try {
+                // Use the mobile number as the document ID for easy lookup in validateContact()
                 const docRef = doc(window.db, `artifacts/${window.appId}/public/data/authorized_contacts`, adminMobile);
                 await setDoc(docRef, {
                     mobile: adminMobile,
