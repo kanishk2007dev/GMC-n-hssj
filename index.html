@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authorized Feedback System (For Selected Contacts Only)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Font -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9fb;
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8 min-h-screen flex items-center justify-center">
+
+    <!-- Main Container -->
+    <div id="app-container" class="w-full max-w-lg bg-white shadow-2xl rounded-xl p-6 sm:p-10 border border-indigo-100">
+        <h1 class="text-3xl font-extrabold text-indigo-700 text-center mb-4">Authorized Feedback System</h1>
+        <p class="text-center text-gray-500 mb-8">
+            Please enter your mobile number. This system is only for **Authorized Contacts**.
+        </p>
+
+        <!-- Status & User ID Display -->
+        <div class="mb-6 space-y-2">
+            <p id="status-message" class="text-sm font-medium text-center text-red-600 transition duration-300"></p>
+            <p class="text-xs text-gray-400 text-center">
+                User ID: <span id="user-id" class="font-mono text-gray-500">Loading...</span>
+            </p>
+        </div>
+
+        <!-- Phase 1: Mobile Number Validation -->
+        <div id="validation-section">
+            <div class="space-y-4">
+                <label for="mobileNo" class="block text-sm font-medium text-gray-700">Mobile Number (10 Digits):</label>
+                <input type="tel" id="mobileNo" maxlength="10" 
+                       class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-lg"
+                       placeholder="e.g., 9876543210" required>
+            </div>
+            <button id="validate-btn" onclick="validateContact()" 
+                    class="w-full mt-6 flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-md text-lg font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out">
+                Proceed and Validate
+            </button>
+        </div>
+
+        <!-- Phase 2: Feedback Form (Initially Hidden) -->
+        <div id="feedback-section" class="hidden">
+            <div class="bg-indigo-50 p-6 rounded-lg shadow-inner">
+                <h2 class="text-xl font-bold text-indigo-800 mb-4">Feedback Form</h2>
+                <div class="space-y-4">
+                    <p class="text-gray-700 font-medium">
+                        <span class="text-sm text-gray-600">Details Loaded:</span>
+                        <br>
+                        <span class="font-semibold">Name:</span> <span id="validated-name" class="text-indigo-700 font-bold"></span>
+                        <br>
+                        <span class="font-semibold">Number:</span> <span id="validated-mobile" class="text-indigo-700 font-bold"></span>
+                    </p>
+                    
+                    <div class="pt-4 border-t border-indigo-200">
+                        <label for="rating" class="block text-sm font-medium text-gray-700">Rating (1-5):</label>
+                        <select id="rating" class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required>
+                            <option value="" disabled selected>Select Rating</option>
+                            <option value="5">5 - Excellent</option>
+                            <option value="4">4 - Good</option>
+                            <option value="3">3 - Average</option>
+                            <option value="2">2 - Poor</option>
+                            <option value="1">1 - Very Poor</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="comments" class="block text-sm font-medium text-gray-700">Comments:</label>
+                        <textarea id="comments" rows="4" 
+                                  class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                                  placeholder="Write your valuable feedback here..."></textarea>
+                    </div>
+
+                    <button id="submit-btn" onclick="submitFeedback()" 
+                            class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-md text-lg font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150 ease-in-out">
+                        Submit Feedback
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Admin Section for Adding Contacts (For Demonstration/Easy Setup) -->
+        <div class="mt-8 pt-6 border-t border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-700 mb-2">Admin Setup (Demo)</h3>
+            <p class="text-sm text-gray-500 mb-4">Use this section to add Authorized Contacts for testing.</p>
+            <div class="flex space-x-2">
+                <input type="text" id="adminName" placeholder="Name" class="flex-1 px-3 py-2 border rounded-lg text-sm">
+                <input type="tel" id="adminMobile" maxlength="10" placeholder="Mobile Number (10 Digits)" class="flex-1 px-3 py-2 border rounded-lg text-sm">
+                <button onclick="addAuthorizedContact()" class="bg-blue-500 hover:bg-blue-600 text-white text-sm px-3 py-2 rounded-lg">Add</button>
+            </div>
+            <p id="admin-message" class="mt-2 text-xs text-center text-blue-600"></p>
+        </div>
+
+    </div>
+
+    <!-- Firebase SDK Imports -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, addDoc, collection, query, where, getDocs, serverTimestamp, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global Firebase variables
+        window.db = null;
+        window.auth = null;
+        window.userId = null;
+        window.appId = null;
+        window.validatedUserData = null;
+        
+        // Use the globally available variables
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        window.appId = typeof __app_id !== 'undefined' ? __app_id : 'default-feedback-app-id';
+
+        // Helper function to show status messages
+        function showStatus(message, isError = false) {
+            const statusEl = document.getElementById('status-message');
+            statusEl.textContent = message;
+            statusEl.className = `text-sm font-medium text-center transition duration-300 ${isError ? 'text-red-600' : 'text-green-600'}`;
+        }
+        
+        // Initialize Firebase and Authentication
+        async function initFirebase() {
+            if (!Object.keys(firebaseConfig).length) {
+                showStatus("Firebase configuration not available. Data will not be saved/loaded.", true);
+                document.getElementById('user-id').textContent = 'N/A';
+                return;
+            }
+
+            setLogLevel('debug');
+            const app = initializeApp(firebaseConfig);
+            window.db = getFirestore(app);
+            window.auth = getAuth(app);
+
+            try {
+                if (initialAuthToken) {
+                    await signInWithCustomToken(window.auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(window.auth);
+                }
+            } catch (error) {
+                console.error("Firebase Sign-in Error:", error);
+                showStatus("Authentication error.", true);
+            }
+
+            onAuthStateChanged(window.auth, (user) => {
+                if (user) {
+                    window.userId = user.uid;
+                    document.getElementById('user-id').textContent = window.userId;
+                    console.log("Authenticated with user ID:", window.userId);
+                } else {
+                    document.getElementById('user-id').textContent = 'Signed Out';
+                }
+            });
+        }
+
+        // --- CORE APPLICATION LOGIC ---
+
+        // 1. Mobile Number Validation
+        window.validateContact = async function() {
+            const mobileNoInput = document.getElementById('mobileNo');
+            const mobileNo = mobileNoInput.value.trim();
+            const validateBtn = document.getElementById('validate-btn');
+
+            if (mobileNo.length !== 10 || !/^\d+$/.test(mobileNo)) {
+                showStatus("Please enter a valid 10-digit mobile number.", true);
+                return;
+            }
+
+            if (!window.db || !window.userId) {
+                 showStatus("Database is still loading, please wait.", true);
+                 return;
+            }
+            
+            showStatus("Validating number...", false);
+            validateBtn.disabled = true;
+
+            try {
+                // Query the 'authorized_contacts' collection
+                const contactsRef = collection(window.db, `artifacts/${window.appId}/public/data/authorized_contacts`);
+                const q = query(contactsRef, where("mobile", "==", mobileNo));
+                
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    // Contact is NOT authorized
+                    showStatus("❌ Your mobile number is not Authorized. You cannot submit feedback.", true);
+                    document.getElementById('feedback-section').classList.add('hidden');
+                    window.validatedUserData = null;
+                } else {
+                    // Contact is authorized!
+                    const docData = querySnapshot.docs[0].data();
+                    window.validatedUserData = { 
+                        mobile: mobileNo, 
+                        name: docData.name || "Unknown User" 
+                    };
+
+                    // Update the UI for the feedback form
+                    document.getElementById('validated-name').textContent = window.validatedUserData.name;
+                    document.getElementById('validated-mobile').textContent = window.validatedUserData.mobile;
+                    
+                    document.getElementById('validation-section').classList.add('hidden');
+                    document.getElementById('feedback-section').classList.remove('hidden');
+                    
+                    // Updated message to emphasize auto-population
+                    showStatus(`✅ Details found! Welcome, ${window.validatedUserData.name}. Your profile is loaded. Please submit your feedback.`, false);
+                }
+
+            } catch (e) {
+                console.error("Error validating contact: ", e);
+                showStatus("An error occurred during validation. Please try again.", true);
+            } finally {
+                validateBtn.disabled = false;
+            }
+        };
+
+        // 2. Feedback Submission
+        window.submitFeedback = async function() {
+            if (!window.validatedUserData) {
+                showStatus("Please validate your mobile number first.", true);
+                return;
+            }
+
+            const rating = document.getElementById('rating').value;
+            const comments = document.getElementById('comments').value.trim();
+            const submitBtn = document.getElementById('submit-btn');
+
+            if (!rating) {
+                showStatus("Please select a rating (1-5).", true);
+                return;
+            }
+
+            if (!window.db || !window.userId) {
+                 showStatus("Database is still loading, please wait.", true);
+                 return;
+            }
+
+            submitBtn.disabled = true;
+            showStatus("Submitting feedback...", false);
+
+            try {
+                const feedbackRef = collection(window.db, `artifacts/${window.appId}/public/data/feedback_submissions`);
+                
+                await addDoc(feedbackRef, {
+                    mobile: window.validatedUserData.mobile,
+                    name: window.validatedUserData.name,
+                    rating: parseInt(rating, 10),
+                    comments: comments,
+                    timestamp: serverTimestamp()
+                });
+
+                showStatus("🎉 Your feedback has been successfully submitted! Thank you!", false);
+                
+                // Display success message
+                document.getElementById('feedback-section').innerHTML = `
+                    <div class="p-8 bg-green-100 rounded-lg text-center">
+                        <svg class="mx-auto h-12 w-12 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <h3 class="mt-2 text-xl font-semibold text-green-800">Successfully Submitted!</h3>
+                        <p class="mt-1 text-sm text-green-700">We appreciate your valuable feedback.</p>
+                    </div>
+                `;
+                
+            } catch (e) {
+                console.error("Error adding document: ", e);
+                showStatus("Error submitting feedback.", true);
+            } finally {
+                submitBtn.disabled = false;
+            }
+        };
+
+        // --- ADMIN DEMO FUNCTION ---
+        window.addAuthorizedContact = async function() {
+            const adminName = document.getElementById('adminName').value.trim();
+            const adminMobile = document.getElementById('adminMobile').value.trim();
+            const adminMsgEl = document.getElementById('admin-message');
+
+            if (!adminName || adminMobile.length !== 10 || !/^\d+$/.test(adminMobile)) {
+                adminMsgEl.textContent = "Name and a 10-digit mobile number are required.";
+                adminMsgEl.className = "mt-2 text-xs text-center text-red-600";
+                return;
+            }
+
+            if (!window.db) {
+                 adminMsgEl.textContent = "Database not loaded.";
+                 adminMsgEl.className = "mt-2 text-xs text-center text-red-600";
+                 return;
+            }
+
+            try {
+                const docRef = doc(window.db, `artifacts/${window.appId}/public/data/authorized_contacts`, adminMobile);
+                await setDoc(docRef, {
+                    mobile: adminMobile,
+                    name: adminName,
+                    addedBy: window.userId,
+                    timestamp: serverTimestamp()
+                });
+                adminMsgEl.textContent = `✅ ${adminName} (${adminMobile}) successfully added to Authorized Contacts.`;
+                adminMsgEl.className = "mt-2 text-xs text-center text-green-600";
+                document.getElementById('adminName').value = '';
+                document.getElementById('adminMobile').value = '';
+
+            } catch (e) {
+                console.error("Error adding admin contact: ", e);
+                adminMsgEl.textContent = "Error adding Authorized Contact.";
+                adminMsgEl.className = "mt-2 text-xs text-center text-red-600";
+            }
+        };
+
+
+        // Start the application
+        window.onload = initFirebase;
+    </script>
+</body>
+</html>
