@@ -132,6 +132,7 @@
                         <tr>
                             <th scope="col" class="py-3 px-6">Name</th>
                             <th scope="col" class="py-3 px-6">Mobile</th>
+                            <th scope="col" class="py-3 px-6">Status</th>
                         </tr>
                     </thead>
                     <tbody id="contacts-list">
@@ -183,7 +184,8 @@
         // Get configuration from the environment (This step replaces pasting API keys)
         const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-        window.appId = typeof __app_id !== 'undefined' ? __app_id : 'default-feedback-app-id';
+        // Use the specific artifact path for the authorized contacts database
+        window.appId = typeof __app_id !== 'undefined' ? __app_id : 'c_539241c4dfc2f371_index.html-750';
 
         // Helper function to show status messages
         function showStatus(message, isError = false) {
@@ -259,28 +261,34 @@
             if (!window.db || !window.isAuthReady) return;
 
             // 1. Authorized Contacts Listener
+            // Database path format: artifacts/{appId}/public/data/authorized_contacts/{mobile}
+            // Example: artifacts/c_539241c4dfc2f371_index.html-750/public/data/authorized_contacts/9876543210
+            // Data structure: { active: boolean, mobile: string, name: string, timestamp: serverTimestamp }
             const contactsRef = collection(window.db, `artifacts/${window.appId}/public/data/authorized_contacts`);
             onSnapshot(contactsRef, (snapshot) => {
                 const list = document.getElementById('contacts-list');
                 list.innerHTML = '';
                 if (snapshot.empty) {
-                    list.innerHTML = '<tr><td colspan="2" class="text-center py-4 text-gray-400">No authorized contacts saved yet.</td></tr>';
+                    list.innerHTML = '<tr><td colspan="3" class="text-center py-4 text-gray-400">No authorized contacts saved yet.</td></tr>';
                     return;
                 }
                 
                 snapshot.forEach(doc => {
                     const data = doc.data();
+                    const activeStatus = data.active !== false ? '✓ Active' : '✗ Inactive';
+                    const statusColor = data.active !== false ? 'text-green-600' : 'text-red-600';
                     const row = `
                         <tr class="hover:bg-blue-50/50">
                             <td class="py-2 px-6 font-medium text-gray-900">${data.name}</td>
                             <td class="py-2 px-6 font-mono text-indigo-700">${data.mobile}</td>
+                            <td class="py-2 px-6 font-medium ${statusColor}">${activeStatus}</td>
                         </tr>
                     `;
                     list.innerHTML += row;
                 });
             }, (error) => {
                 console.error("Error listening to contacts:", error);
-                document.getElementById('contacts-list').innerHTML = `<tr><td colspan="2" class="text-center py-4 text-red-500">Error loading contacts.</td></tr>`;
+                document.getElementById('contacts-list').innerHTML = `<tr><td colspan="3" class="text-center py-4 text-red-500">Error loading contacts.</td></tr>`;
             });
 
             // 2. Feedback Submissions Listener
@@ -351,6 +359,15 @@
                     window.validatedUserData = null;
                 } else {
                     const docData = querySnapshot.docs[0].data();
+                    
+                    // Check if the contact is active
+                    if (docData.active === false) {
+                        showStatus("❌ Your account is currently inactive. Please contact the administrator.", true);
+                        document.getElementById('feedback-section').classList.add('hidden');
+                        window.validatedUserData = null;
+                        return;
+                    }
+                    
                     window.validatedUserData = { 
                         mobile: mobileNo, 
                         name: docData.name || "Unknown User" 
@@ -451,6 +468,7 @@
                 await setDoc(docRef, {
                     mobile: adminMobile,
                     name: adminName,
+                    active: true,
                     addedBy: window.userId,
                     timestamp: serverTimestamp()
                 });
