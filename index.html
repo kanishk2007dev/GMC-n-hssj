@@ -161,8 +161,9 @@
         </div>
     </div>
 
-    <!-- Firebase SDK Imports -->
+    <!-- Firebase SDK Imports (This is the standard way to connect Firebase) -->
     <script type="module">
+        // Import Core Services
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, addDoc, collection, query, where, getDocs, serverTimestamp, setLogLevel, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -177,10 +178,9 @@
         
         // --- ADMIN PASSWORD CONFIGURATION ---
         const ADMIN_PASSWORD = "2007"; 
-        // NOTE: In a production app, this password should be stored securely on a backend server, not hardcoded here.
         // --- END PASSWORD CONFIGURATION ---
 
-        // Use the globally available variables
+        // Get configuration from the environment (This step replaces pasting API keys)
         const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
         window.appId = typeof __app_id !== 'undefined' ? __app_id : 'default-feedback-app-id';
@@ -202,10 +202,11 @@
 
             setLogLevel('debug');
             const app = initializeApp(firebaseConfig);
-            window.db = getFirestore(app);
-            window.auth = getAuth(app);
+            window.db = getFirestore(app); // Initialization of Firestore
+            window.auth = getAuth(app);     // Initialization of Auth
 
             try {
+                // Sign in using the provided token or anonymously
                 if (initialAuthToken) {
                     await signInWithCustomToken(window.auth, initialAuthToken);
                 } else {
@@ -221,8 +222,6 @@
                     window.userId = user.uid;
                     document.getElementById('user-id').textContent = `${window.appId} / ${window.userId}`;
                     window.isAuthReady = true;
-                    console.log("Authenticated with user ID:", window.userId);
-                    // NOTE: setupRealtimeListeners is now called only after successful adminLogin()
                 } else {
                     document.getElementById('user-id').textContent = 'Signed Out';
                     window.isAuthReady = false;
@@ -320,7 +319,7 @@
             });
         }
 
-        // --- CORE APPLICATION LOGIC (Same as before) ---
+        // --- CORE APPLICATION LOGIC ---
 
         window.validateContact = async function() {
             const mobileNoInput = document.getElementById('mobileNo');
