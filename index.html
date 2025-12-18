@@ -3,472 +3,430 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Authorized Feedback System (For Selected Contacts Only)</title>
-    <!-- Tailwind CSS CDN -->
+    <title>BMSA | Official Restructuring Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Inter Font -->
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f7f9fb;
-        }
-        .data-table th, .data-table td {
-            padding: 8px 12px;
-            border-bottom: 1px solid #e5e7eb;
-            text-align: left;
-        }
-        .data-table th {
-            background-color: #f3f4f6;
-            font-weight: 600;
-        }
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; color: #1e293b; }
+        .rating-btn { cursor: pointer; transition: all 0.2s; border: 2px solid #e2e8f0; }
+        .rating-btn.active { background-color: #4f46e5; border-color: #4f46e5; color: white; transform: scale(1.05); }
+        .data-table th, .data-table td { padding: 12px 16px; border-bottom: 1px solid #e2e8f0; text-align: left; }
+        .data-table th { background-color: #f8fafc; font-weight: 800; font-size: 0.65rem; text-transform: uppercase; color: #64748b; }
+        .animate-fade { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        input[type="radio"]:checked + label { border-color: #4f46e5; background-color: #eef2ff; color: #4f46e5; }
+        #recaptcha-container { margin: 10px auto; display: flex; justify-content: center; min-height: 80px; }
     </style>
 </head>
-<body class="p-4 sm:p-8 min-h-screen flex flex-col items-center justify-start">
+<body class="p-4 md:p-8 min-h-screen flex flex-col items-center justify-start pb-24">
 
-    <!-- Main Container (Feedback Submission) -->
-    <div id="app-container" class="w-full max-w-lg bg-white shadow-2xl rounded-xl p-6 sm:p-10 border border-indigo-100 mb-8">
-        <h1 class="text-3xl font-extrabold text-indigo-700 text-center mb-4">Authorized Feedback System</h1>
-        <p class="text-center text-gray-500 mb-8">
-            Please enter your mobile number. This system is only for **Authorized Contacts**.
-        </p>
-
-        <!-- Status & User ID Display -->
-        <div class="mb-6 space-y-2">
-            <p id="status-message" class="text-sm font-medium text-center text-red-600 transition duration-300"></p>
-            <p class="text-xs text-gray-400 text-center">
-                App/User ID: <span id="user-id" class="font-mono text-gray-500">Loading...</span>
-            </p>
+    <!-- Brand Header -->
+    <div class="w-full max-w-2xl text-center mb-8">
+        <div class="inline-block bg-indigo-600 text-white text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest mb-4">Official BMSA Portal</div>
+        <h1 class="text-4xl font-black tracking-tight text-slate-900 mb-6">Restructuring Feedback Form</h1>
+        <div class="text-sm text-slate-600 leading-relaxed text-left space-y-4 bg-white p-6 md:p-8 rounded-[2rem] border border-slate-200 shadow-xl">
+            <p>• The <strong>BMSA</strong> aims to strengthen leadership, teamwork, and collaboration among all medical students.</p>
+            <p>• We are currently restructuring BMSA to be more effective and inclusive.</p>
+            <p class="font-bold text-indigo-600 italic">Please share your honest feedback. A secure OTP will be sent to your registered number.</p>
         </div>
+    </div>
 
-        <!-- Phase 1: Mobile Number Validation -->
-        <div id="validation-section">
-            <div class="space-y-4">
-                <label for="mobileNo" class="block text-sm font-medium text-gray-700">Mobile Number (10 Digits):</label>
-                <input type="tel" id="mobileNo" maxlength="10" 
-                       class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-lg"
-                       placeholder="e.g., 9876543210" required>
+    <!-- Main Container -->
+    <div id="app-container" class="w-full max-w-2xl bg-white shadow-2xl rounded-[3rem] p-8 md:p-12 border border-slate-100 mb-10 relative overflow-hidden">
+        
+        <!-- Step 1: Phone Entry -->
+        <div id="phone-section" class="space-y-8">
+            <div class="text-center">
+                <div id="status-message" class="text-[10px] font-black uppercase tracking-widest text-center py-4 rounded-2xl mb-6 empty:hidden"></div>
+                <h3 class="text-xl font-black text-slate-800 mb-2">Member Authentication</h3>
+                <p class="text-xs text-slate-400 font-medium">Verify your registered mobile to receive an OTP.</p>
             </div>
-            <button id="validate-btn" onclick="validateContact()" 
-                    class="w-full mt-6 flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-md text-lg font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out">
-                Proceed and Validate
+            <div class="space-y-3">
+                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Mobile Number</label>
+                <div class="relative">
+                    <span class="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 font-bold text-xl">+91</span>
+                    <input type="tel" id="mobileNo" maxlength="10" 
+                           class="w-full pl-16 pr-6 py-5 bg-slate-50 border-2 border-slate-100 rounded-[2rem] focus:border-indigo-600 focus:bg-white outline-none text-2xl font-black tracking-widest text-slate-800 transition-all"
+                           placeholder="0000000000">
+                </div>
+            </div>
+            <!-- Recaptcha Container -->
+            <div id="recaptcha-container"></div>
+            
+            <button id="send-otp-btn" onclick="handleSendOTP()" disabled
+                    class="w-full py-5 bg-slate-400 cursor-not-allowed text-white rounded-[2rem] font-black text-sm shadow-xl transition-all transform uppercase tracking-[0.2em]">
+                Initializing Auth...
             </button>
         </div>
 
-        <!-- Phase 2: Feedback Form (Initially Hidden) -->
-        <div id="feedback-section" class="hidden">
-            <div class="bg-indigo-50 p-6 rounded-lg shadow-inner">
-                <h2 class="text-xl font-bold text-indigo-800 mb-4">Feedback Form</h2>
-                <div class="space-y-4">
-                    <p class="text-gray-700 font-medium">
-                        <span class="text-sm text-gray-600">Details Loaded:</span>
-                        <br>
-                        <span class="font-semibold">Name:</span> <span id="validated-name" class="text-indigo-700 font-bold"></span>
-                        <br>
-                        <span class="font-semibold">Number:</span> <span id="validated-mobile" class="text-indigo-700 font-bold"></span>
-                    </p>
-                    
-                    <div class="pt-4 border-t border-indigo-200">
-                        <label for="rating" class="block text-sm font-medium text-gray-700">Rating (1-5):</label>
-                        <select id="rating" class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required>
-                            <option value="" disabled selected>Select Rating</option>
-                            <option value="5">5 - Excellent</option>
-                            <option value="4">4 - Good</option>
-                            <option value="3">3 - Average</option>
-                            <option value="2">2 - Poor</option>
-                            <option value="1">1 - Very Poor</option>
-                        </select>
-                    </div>
+        <!-- Step 2: OTP Entry (Hidden) -->
+        <div id="otp-section" class="hidden animate-fade space-y-8">
+            <div class="text-center">
+                <h3 class="text-xl font-black text-slate-800 mb-2">Verify OTP</h3>
+                <p class="text-xs text-slate-400 font-medium">Enter the 6-digit code sent to <span id="display-number" class="font-bold text-indigo-600"></span></p>
+            </div>
+            <div class="space-y-3">
+                <input type="text" id="otpCode" maxlength="6" 
+                       class="w-full py-5 bg-slate-50 border-2 border-slate-100 rounded-[2rem] focus:border-indigo-600 focus:bg-white outline-none text-3xl font-black tracking-[0.5em] text-center text-slate-800 transition-all"
+                       placeholder="000000">
+            </div>
+            <button onclick="handleVerifyOTP()" 
+                    class="w-full py-5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-[2rem] font-black text-sm shadow-xl transition-all transform hover:-translate-y-1 active:scale-95 uppercase tracking-[0.2em]">
+                Verify & Open Form
+            </button>
+            <button onclick="resetAuth()" class="w-full text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-indigo-600">Change Number</button>
+        </div>
 
-                    <div>
-                        <label for="comments" class="block text-sm font-medium text-gray-700">Comments:</label>
-                        <textarea id="comments" rows="4" 
-                                  class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
-                                  placeholder="Write your valuable feedback here..."></textarea>
-                    </div>
-
-                    <button id="submit-btn" onclick="submitFeedback()" 
-                            class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-md text-lg font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150 ease-in-out">
-                        Submit Feedback
-                    </button>
+        <!-- Step 3: Feedback Form (Hidden) -->
+        <div id="feedback-section" class="hidden animate-fade space-y-10 py-2">
+            <div class="flex items-center justify-between p-6 bg-indigo-50 rounded-[2rem] border border-indigo-100">
+                <div>
+                    <span class="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Logged Member</span>
+                    <h2 id="validated-name" class="text-xl font-black text-slate-800"></h2>
                 </div>
+                <div class="h-12 w-12 bg-white rounded-full flex items-center justify-center shadow-sm">👤</div>
             </div>
-        </div>
-        
-        <!-- Admin Section for Adding Contacts (For Demonstration/Easy Setup) -->
-        <div class="mt-8 pt-6 border-t border-gray-200">
-            <h3 class="text-lg font-semibold text-gray-700 mb-2">Admin Setup (Add Authorized Contact)</h3>
-            <p class="text-sm text-gray-500 mb-4">Use this section to add users who are allowed to give feedback.</p>
-            <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-                <input type="text" id="adminName" placeholder="Name" class="flex-1 px-3 py-2 border rounded-lg text-sm">
-                <input type="tel" id="adminMobile" maxlength="10" placeholder="Mobile No. (10 Digits)" class="flex-1 px-3 py-2 border rounded-lg text-sm">
-                <button onclick="addAuthorizedContact()" class="bg-blue-500 hover:bg-blue-600 text-white text-sm px-3 py-2 rounded-lg transition duration-150">Add</button>
-            </div>
-            <p id="admin-message" class="mt-2 text-xs text-center text-blue-600"></p>
-        </div>
-    </div>
-    
-    <!-- Admin Login Section -->
-    <div id="admin-login-section" class="w-full max-w-4xl bg-yellow-50 shadow-lg rounded-xl p-6 sm:p-8 border border-yellow-200 mb-8 text-center">
-        <h2 class="text-2xl font-bold text-yellow-800 mb-4">Admin Data View (Protected)</h2>
-        <p class="text-sm text-gray-600 mb-4">Enter the password to view all authorized contacts and feedback submissions.</p>
-        <div class="flex flex-col sm:flex-row justify-center items-center space-y-2 sm:space-y-0 sm:space-x-4 max-w-sm mx-auto">
-            <input type="password" id="admin-password" placeholder="Password" class="flex-1 px-4 py-2 border border-yellow-300 rounded-lg w-full">
-            <button onclick="adminLogin()" class="w-full sm:w-auto py-2 px-6 bg-yellow-600 hover:bg-yellow-700 text-white font-medium rounded-lg transition duration-150">Login</button>
-        </div>
-        <p id="admin-login-message" class="mt-3 text-sm font-medium text-red-600"></p>
-    </div>
 
-    <!-- Data Display Section (Protected) -->
-    <div id="data-view-protected" class="w-full max-w-4xl bg-white shadow-2xl rounded-xl p-6 sm:p-10 border border-gray-100 hidden">
-        <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-2">Real-time Data View</h2>
-
-        <!-- Authorized Contacts Table -->
-        <div class="mb-8">
-            <h3 class="text-xl font-semibold text-blue-600 mb-4">1. Authorized Contacts</h3>
-            <div class="overflow-x-auto rounded-lg border border-blue-200">
-                <table id="contacts-table" class="data-table w-full text-sm text-left text-gray-500">
-                    <thead>
-                        <tr>
-                            <th scope="col" class="py-3 px-6">Name</th>
-                            <th scope="col" class="py-3 px-6">Mobile</th>
-                        </tr>
-                    </thead>
-                    <tbody id="contacts-list">
-                        <tr><td colspan="2" class="text-center py-4">Awaiting Admin Login...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Feedback Submissions Table -->
-        <div>
-            <h3 class="text-xl font-semibold text-green-600 mb-4">2. Feedback Submissions</h3>
-            <div class="overflow-x-auto rounded-lg border border-green-200">
-                <table id="feedback-table" class="data-table w-full text-sm text-left text-gray-500">
-                    <thead>
-                        <tr>
-                            <th scope="col" class="py-3 px-6">Name</th>
-                            <th scope="col" class="py-3 px-6">Rating</th>
-                            <th scope="col" class="py-3 px-6">Comment</th>
-                        </tr>
-                    </thead>
-                    <tbody id="feedback-list">
-                        <tr><td colspan="3" class="text-center py-4">Awaiting Admin Login...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- Firebase SDK Imports (This is the standard way to connect Firebase) -->
-    <script type="module">
-        // Import Core Services
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, addDoc, collection, query, where, getDocs, serverTimestamp, setLogLevel, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // Global Firebase variables
-        window.db = null;
-        window.auth = null;
-        window.userId = null;
-        window.appId = null;
-        window.validatedUserData = null;
-        window.isAuthReady = false; // Flag to ensure Firestore queries wait for auth
-        
-        // --- ADMIN PASSWORD CONFIGURATION ---
-        const ADMIN_PASSWORD = "2007"; 
-        // --- END PASSWORD CONFIGURATION ---
-
-        // Get configuration from the environment (This step replaces pasting API keys)
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-        window.appId = typeof __app_id !== 'undefined' ? __app_id : 'default-feedback-app-id';
-
-        // Helper function to show status messages
-        function showStatus(message, isError = false) {
-            const statusEl = document.getElementById('status-message');
-            statusEl.textContent = message;
-            statusEl.className = `text-sm font-medium text-center transition duration-300 ${isError ? 'text-red-600' : 'text-green-600'}`;
-        }
-        
-        // Initialize Firebase and Authentication
-        async function initFirebase() {
-            if (!Object.keys(firebaseConfig).length) {
-                showStatus("Firebase configuration not available. Data will not be saved/loaded.", true);
-                document.getElementById('user-id').textContent = 'N/A';
-                return;
-            }
-
-            setLogLevel('debug');
-            const app = initializeApp(firebaseConfig);
-            window.db = getFirestore(app); // Initialization of Firestore
-            window.auth = getAuth(app);     // Initialization of Auth
-
-            try {
-                // Sign in using the provided token or anonymously
-                if (initialAuthToken) {
-                    await signInWithCustomToken(window.auth, initialAuthToken);
-                } else {
-                    await signInAnonymously(window.auth);
-                }
-            } catch (error) {
-                console.error("Firebase Sign-in Error:", error);
-                showStatus("Authentication error.", true);
-            }
-
-            onAuthStateChanged(window.auth, (user) => {
-                if (user) {
-                    window.userId = user.uid;
-                    document.getElementById('user-id').textContent = `${window.appId} / ${window.userId}`;
-                    window.isAuthReady = true;
-                } else {
-                    document.getElementById('user-id').textContent = 'Signed Out';
-                    window.isAuthReady = false;
-                }
-            });
-        }
-        
-        // --- ADMIN LOGIN FUNCTION ---
-        window.adminLogin = function() {
-            const passwordInput = document.getElementById('admin-password');
-            const password = passwordInput.value;
-            const loginMessage = document.getElementById('admin-login-message');
-
-            if (password === ADMIN_PASSWORD) {
-                if (!window.db || !window.isAuthReady) {
-                    loginMessage.textContent = "Authentication is still initializing. Please wait and try logging in again.";
-                    return;
-                }
-                
-                loginMessage.textContent = "Login Successful! Loading data...";
-                loginMessage.className = "mt-3 text-sm font-medium text-green-600";
-                
-                // Show data view and start listeners
-                document.getElementById('admin-login-section').classList.add('hidden');
-                document.getElementById('data-view-protected').classList.remove('hidden');
-                setupRealtimeListeners();
-            } else {
-                loginMessage.textContent = "Invalid Password. Access Denied.";
-                loginMessage.className = "mt-3 text-sm font-medium text-red-600";
-            }
-        };
-
-        // --- REAL-TIME DATA LISTENERS ---
-        function setupRealtimeListeners() {
-            if (!window.db || !window.isAuthReady) return;
-
-            // 1. Authorized Contacts Listener
-            const contactsRef = collection(window.db, `artifacts/${window.appId}/public/data/authorized_contacts`);
-            onSnapshot(contactsRef, (snapshot) => {
-                const list = document.getElementById('contacts-list');
-                list.innerHTML = '';
-                if (snapshot.empty) {
-                    list.innerHTML = '<tr><td colspan="2" class="text-center py-4 text-gray-400">No authorized contacts saved yet.</td></tr>';
-                    return;
-                }
-                
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    const row = `
-                        <tr class="hover:bg-blue-50/50">
-                            <td class="py-2 px-6 font-medium text-gray-900">${data.name}</td>
-                            <td class="py-2 px-6 font-mono text-indigo-700">${data.mobile}</td>
-                        </tr>
-                    `;
-                    list.innerHTML += row;
-                });
-            }, (error) => {
-                console.error("Error listening to contacts:", error);
-                document.getElementById('contacts-list').innerHTML = `<tr><td colspan="2" class="text-center py-4 text-red-500">Error loading contacts.</td></tr>`;
-            });
-
-            // 2. Feedback Submissions Listener
-            const feedbackRef = collection(window.db, `artifacts/${window.appId}/public/data/feedback_submissions`);
-            
-            onSnapshot(feedbackRef, (snapshot) => {
-                const list = document.getElementById('feedback-list');
-                list.innerHTML = '';
-                if (snapshot.empty) {
-                    list.innerHTML = '<tr><td colspan="3" class="text-center py-4 text-gray-400">No feedback submissions yet.</td></tr>';
-                    return;
-                }
-                
-                const feedbackData = [];
-                snapshot.forEach(doc => {
-                    feedbackData.push(doc.data());
-                });
-
-                // In-memory sort by timestamp descending for latest first
-                feedbackData.sort((a, b) => (b.timestamp?.toMillis() || 0) - (a.timestamp?.toMillis() || 0));
-
-                feedbackData.forEach(data => {
-                    const ratingStars = '★'.repeat(data.rating) + '☆'.repeat(5 - data.rating);
-                    const row = `
-                        <tr class="hover:bg-green-50/50">
-                            <td class="py-2 px-6 font-medium text-gray-900">${data.name}</td>
-                            <td class="py-2 px-6 text-yellow-500 font-bold">${ratingStars}</td>
-                            <td class="py-2 px-6">${data.comments || "No comment provided."}</td>
-                        </tr>
-                    `;
-                    list.innerHTML += row;
-                });
-            }, (error) => {
-                console.error("Error listening to feedback:", error);
-                document.getElementById('feedback-list').innerHTML = `<tr><td colspan="3" class="text-center py-4 text-red-500">Error loading feedback.</td></tr>`;
-            });
-        }
-
-        // --- CORE APPLICATION LOGIC ---
-
-        window.validateContact = async function() {
-            const mobileNoInput = document.getElementById('mobileNo');
-            const mobileNo = mobileNoInput.value.trim();
-            const validateBtn = document.getElementById('validate-btn');
-
-            if (mobileNo.length !== 10 || !/^\d+$/.test(mobileNo)) {
-                showStatus("Please enter a valid 10-digit mobile number.", true);
-                return;
-            }
-
-            if (!window.db || !window.isAuthReady) {
-                 showStatus("Database is still loading, please wait.", true);
-                 return;
-            }
-            
-            showStatus("Validating number...", false);
-            validateBtn.disabled = true;
-
-            try {
-                const contactsRef = collection(window.db, `artifacts/${window.appId}/public/data/authorized_contacts`);
-                const q = query(contactsRef, where("mobile", "==", mobileNo));
-                
-                const querySnapshot = await getDocs(q);
-
-                if (querySnapshot.empty) {
-                    showStatus("❌ Your mobile number is not Authorized. You cannot submit feedback.", true);
-                    document.getElementById('feedback-section').classList.add('hidden');
-                    window.validatedUserData = null;
-                } else {
-                    const docData = querySnapshot.docs[0].data();
-                    window.validatedUserData = { 
-                        mobile: mobileNo, 
-                        name: docData.name || "Unknown User" 
-                    };
-
-                    document.getElementById('validated-name').textContent = window.validatedUserData.name;
-                    document.getElementById('validated-mobile').textContent = window.validatedUserData.mobile;
-                    
-                    document.getElementById('validation-section').classList.add('hidden');
-                    document.getElementById('feedback-section').classList.remove('hidden');
-                    
-                    showStatus(`✅ Details found! Welcome, ${window.validatedUserData.name}. Your profile is loaded. Please submit your feedback.`, false);
-                }
-
-            } catch (e) {
-                console.error("Error validating contact: ", e);
-                showStatus("An error occurred during validation. Please try again.", true);
-            } finally {
-                validateBtn.disabled = false;
-            }
-        };
-
-        window.submitFeedback = async function() {
-            if (!window.validatedUserData) {
-                showStatus("Please validate your mobile number first.", true);
-                return;
-            }
-
-            const rating = document.getElementById('rating').value;
-            const comments = document.getElementById('comments').value.trim();
-            const submitBtn = document.getElementById('submit-btn');
-
-            if (!rating) {
-                showStatus("Please select a rating (1-5).", true);
-                return;
-            }
-
-            if (!window.db || !window.isAuthReady) {
-                 showStatus("Database is still loading, please wait.", true);
-                 return;
-            }
-
-            submitBtn.disabled = true;
-            showStatus("Submitting feedback...", false);
-
-            try {
-                const feedbackRef = collection(window.db, `artifacts/${window.appId}/public/data/feedback_submissions`);
-                
-                await addDoc(feedbackRef, {
-                    mobile: window.validatedUserData.mobile,
-                    name: window.validatedUserData.name,
-                    rating: parseInt(rating, 10),
-                    comments: comments,
-                    timestamp: serverTimestamp()
-                });
-
-                showStatus("🎉 Your feedback has been successfully submitted! Thank you!", false);
-                
-                // Display success message
-                document.getElementById('feedback-section').innerHTML = `
-                    <div class="p-8 bg-green-100 rounded-lg text-center">
-                        <svg class="mx-auto h-12 w-12 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <h3 class="mt-2 text-xl font-semibold text-green-800">Successfully Submitted!</h3>
-                        <p class="mt-1 text-sm text-green-700">We appreciate your valuable feedback.</p>
+            <div class="space-y-12 text-sm">
+                <!-- Select Batch -->
+                <div class="space-y-4">
+                    <label class="font-black text-slate-700">1. Select your Batch</label>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="relative"><input type="radio" name="batch" id="batch23" value="23" class="hidden"><label for="batch23" class="flex items-center justify-center py-4 border-2 border-slate-100 rounded-2xl cursor-pointer font-bold text-slate-500 hover:bg-slate-50 transition-all">23 Batch</label></div>
+                        <div class="relative"><input type="radio" name="batch" id="batch24" value="24" class="hidden"><label for="batch24" class="flex items-center justify-center py-4 border-2 border-slate-100 rounded-2xl cursor-pointer font-bold text-slate-500 hover:bg-slate-50 transition-all">24 Batch</label></div>
                     </div>
-                `;
+                </div>
+
+                <!-- Satisfaction Rating -->
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center"><label class="font-black text-slate-700">2. Current BMSA Structure Satisfaction</label><span id="score-satisfaction" class="text-xs font-black text-indigo-500">0/3</span></div>
+                    <div class="flex gap-4" id="q-satisfaction" data-value="0">
+                        <div onclick="setSimpleRating('satisfaction', 1)" class="rating-btn flex-1 py-4 rounded-2xl text-center font-bold border-2">1</div>
+                        <div onclick="setSimpleRating('satisfaction', 2)" class="rating-btn flex-1 py-4 rounded-2xl text-center font-bold border-2">2</div>
+                        <div onclick="setSimpleRating('satisfaction', 3)" class="rating-btn flex-1 py-4 rounded-2xl text-center font-bold border-2">3</div>
+                    </div>
+                </div>
+
+                <!-- Clear roles and responsibilities? -->
+                <div class="space-y-4">
+                    <label class="font-black text-slate-700">3. Are roles and responsibilities clearly defined?</label>
+                    <div class="grid grid-cols-3 gap-3">
+                        <input type="radio" name="roles" id="rolesYes" value="Yes" class="hidden"><label for="rolesYes" class="flex items-center justify-center py-4 border-2 border-slate-100 rounded-2xl cursor-pointer font-bold text-xs">Yes</label>
+                        <input type="radio" name="roles" id="rolesNo" value="No" class="hidden"><label for="rolesNo" class="flex items-center justify-center py-4 border-2 border-slate-100 rounded-2xl cursor-pointer font-bold text-xs">No</label>
+                        <input type="radio" name="roles" id="rolesPart" value="Partially" class="hidden"><label for="rolesPart" class="flex items-center justify-center py-4 border-2 border-slate-100 rounded-2xl cursor-pointer font-bold text-xs">Partially</label>
+                    </div>
+                </div>
+
+                <!-- Decision Making -->
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center"><label class="font-black text-slate-700">4. Decision-making transparency?</label><span id="score-decisions" class="text-xs font-black text-indigo-500">0/3</span></div>
+                    <div class="flex gap-4" id="q-decisions" data-value="0">
+                        <div onclick="setSimpleRating('decisions', 1)" class="rating-btn flex-1 py-4 rounded-2xl text-center font-bold border-2">1</div>
+                        <div onclick="setSimpleRating('decisions', 2)" class="rating-btn flex-1 py-4 rounded-2xl text-center font-bold border-2">2</div>
+                        <div onclick="setSimpleRating('decisions', 3)" class="rating-btn flex-1 py-4 rounded-2xl text-center font-bold border-2">3</div>
+                    </div>
+                </div>
+
+                <!-- Batch representation -->
+                <div class="space-y-4">
+                    <label class="font-black text-slate-700">5. Do you feel batches are represented equally?</label>
+                    <div class="space-y-3">
+                        <input type="radio" name="inclusion" id="inclYes" value="Yes" class="hidden"><label for="inclYes" class="block w-full px-6 py-4 border-2 border-slate-100 rounded-2xl cursor-pointer font-bold">Yes, properly represented</label>
+                        <input type="radio" name="inclusion" id="inclNo" value="No" class="hidden"><label for="inclNo" class="block w-full px-6 py-4 border-2 border-slate-100 rounded-2xl cursor-pointer font-bold">No, needs better inclusion</label>
+                    </div>
+                </div>
+
+                <!-- BMSA Communication -->
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center"><label class="font-black text-slate-700">6. BMSA-Student Communication?</label><span id="score-comm" class="text-xs font-black text-indigo-500">0/3</span></div>
+                    <div class="flex gap-4" id="q-comm" data-value="0">
+                        <div onclick="setSimpleRating('comm', 1)" class="rating-btn flex-1 py-4 rounded-2xl text-center font-bold border-2">1</div>
+                        <div onclick="setSimpleRating('comm', 2)" class="rating-btn flex-1 py-4 rounded-2xl text-center font-bold border-2">2</div>
+                        <div onclick="setSimpleRating('comm', 3)" class="rating-btn flex-1 py-4 rounded-2xl text-center font-bold border-2">3</div>
+                    </div>
+                    <textarea id="improve-comm" rows="3" class="w-full px-6 py-4 bg-slate-50 rounded-2xl border-2 border-slate-100 outline-none focus:border-indigo-600" placeholder="Improve coordination?"></textarea>
+                </div>
+
+                <!-- Useful Events -->
+                <div class="space-y-4">
+                    <label class="font-black text-slate-700">7. Events useful and engaging?</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <input type="radio" name="events" id="evtYes" value="Yes" class="hidden"><label for="evtYes" class="flex items-center justify-center py-4 border-2 border-slate-100 rounded-2xl cursor-pointer font-bold text-xs">Yes</label>
+                        <input type="radio" name="events" id="evtNo" value="No" class="hidden"><label for="evtNo" class="flex items-center justify-center py-4 border-2 border-slate-100 rounded-2xl cursor-pointer font-bold text-xs">No</label>
+                    </div>
+                    <textarea id="new-initiatives" rows="3" class="w-full px-6 py-4 bg-slate-50 rounded-2xl border-2 border-slate-100 outline-none" placeholder="New initiatives?"></textarea>
+                </div>
+
+                <!-- Structural Changes -->
+                <div class="pt-8 border-t border-slate-100 space-y-4">
+                    <label class="font-black text-slate-700">8. Proposed Structural Changes</label>
+                    <textarea id="structural-changes" rows="4" class="w-full px-6 py-4 bg-slate-50 rounded-2xl border-2 border-slate-100 outline-none" placeholder="New posts, committees, etc..."></textarea>
+                </div>
+
+                <!-- Mentorship System -->
+                <div class="space-y-4">
+                    <label class="font-black text-slate-700">9. Support Mentorship System?</label>
+                    <div class="grid grid-cols-3 gap-3">
+                        <input type="radio" name="mentor" id="mentYes" value="Yes" class="hidden"><label for="mentYes" class="flex items-center justify-center py-4 border-2 border-slate-100 rounded-2xl cursor-pointer font-bold text-xs">Yes</label>
+                        <input type="radio" name="mentor" id="mentNo" value="No" class="hidden"><label for="mentNo" class="flex items-center justify-center py-4 border-2 border-slate-100 rounded-2xl cursor-pointer font-bold text-xs">No</label>
+                        <input type="radio" name="mentor" id="mentMay" value="Maybe" class="hidden"><label for="mentMay" class="flex items-center justify-center py-4 border-2 border-slate-100 rounded-2xl cursor-pointer font-bold text-xs">Maybe</label>
+                    </div>
+                </div>
+
+                <!-- Meeting Frequency -->
+                <div class="space-y-4">
+                    <label class="font-black text-slate-700">10. Meeting Frequency?</label>
+                    <div class="space-y-3">
+                        <input type="radio" name="freq" id="freqSem" value="Once per semester" class="hidden"><label for="freqSem" class="block w-full px-6 py-4 border-2 border-slate-100 rounded-2xl cursor-pointer font-bold">Once per semester</label>
+                        <input type="radio" name="freq" id="freqMon" value="Monthly" class="hidden"><label for="freqMon" class="block w-full px-6 py-4 border-2 border-slate-100 rounded-2xl cursor-pointer font-bold">Monthly</label>
+                    </div>
+                </div>
+
+                <!-- Other Comments -->
+                <div class="pt-8 border-t border-slate-100 space-y-4">
+                    <label class="font-black text-slate-700">11. Any other comments?</label>
+                    <textarea id="final-comments" rows="3" class="w-full px-6 py-4 bg-slate-50 rounded-2xl border-2 border-slate-100 outline-none" placeholder="Share anything else..."></textarea>
+                </div>
+
+                <button onclick="submitDetailedFeedback()" 
+                        class="w-full py-6 bg-indigo-600 hover:bg-indigo-700 text-white rounded-[2rem] font-black text-lg shadow-2xl transition-all transform hover:-translate-y-1 active:scale-95 uppercase tracking-widest">
+                    Submit Full Feedback
+                </button>
+            </div>
+        </div>
+        
+        <!-- Registration Terminal -->
+        <details class="mt-12 pt-12 border-t border-slate-100 group">
+            <summary class="flex items-center justify-between cursor-pointer list-none text-[9px] font-black text-slate-300 uppercase tracking-widest hover:text-indigo-400">
+                <span>Registration Terminal (Internal)</span>
+                <span class="group-open:rotate-180 transition-transform">▼</span>
+            </summary>
+            <div class="mt-6 space-y-4">
+                <input type="text" id="adminName" placeholder="Full Name" class="w-full px-5 py-3 bg-slate-50 rounded-2xl text-xs outline-none">
+                <input type="tel" id="adminMobile" maxlength="10" placeholder="Mobile Number" class="w-full px-5 py-3 bg-slate-50 rounded-2xl text-xs outline-none">
+                <button onclick="addAuthorizedContact()" class="w-full bg-slate-200 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest">Authorize Individual</button>
+                <button onclick="bulkImport2023()" class="w-full bg-indigo-50 text-indigo-600 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest">Bulk Register 2023 Batch</button>
+                <p id="admin-message" class="text-center text-[9px] font-bold"></p>
+            </div>
+        </details>
+    </div>
+
+    <!-- Firebase Script -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+        import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc, addDoc, collection, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+        // Your Updated Firebase Configuration
+        const firebaseConfig = {
+          apiKey: "AIzaSyAbnyE7BZ7-ZRXP_q3a4CT9DBgsyipU2ys",
+          authDomain: "fir-otp-web-e0be9.firebaseapp.com",
+          projectId: "fir-otp-web-e0be9",
+          storageBucket: "fir-otp-web-e0be9.firebasestorage.app",
+          messagingSenderId: "79213341660",
+          appId: "1:79213341660:web:7b91151e6c2d813adafd19",
+          measurementId: "G-9REX180VCM"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = "fir-otp-web-e0be9"; 
+
+        window.confirmationResult = null;
+        window.isAuthReady = false;
+
+        // Initialize reCAPTCHA
+        function initRecaptcha() {
+            if (window.recaptchaVerifier) return;
+            window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+                'size': 'normal'
+            });
+        }
+
+        // Initialize Auth gracefully
+        async function initFirebase() {
+            try {
+                // Anonymous auth enables document reading before Phone Auth
+                await signInAnonymously(auth);
+                initRecaptcha();
                 
-            } catch (e) {
-                console.error("Error adding document: ", e);
-                showStatus("Error submitting feedback.", true);
-            } finally {
-                submitBtn.disabled = false;
+                window.isAuthReady = true;
+                const btn = document.getElementById('send-otp-btn');
+                btn.disabled = false;
+                btn.classList.remove('bg-slate-400', 'cursor-not-allowed');
+                btn.classList.add('bg-slate-900', 'hover:bg-black');
+                btn.textContent = "Send OTP";
+                showStatus("System Ready", false);
+            } catch (error) {
+                console.error("Firebase Init Error:", error);
+                if (error.code === 'auth/admin-restricted-operation') {
+                    showStatus("Admin: Please enable 'Anonymous Auth' in Firebase Console", true);
+                    // Still initialize app verifier for Phone Auth if possible
+                    initRecaptcha();
+                    window.isAuthReady = true; // Allow attempting phone auth
+                    document.getElementById('send-otp-btn').disabled = false;
+                    document.getElementById('send-otp-btn').textContent = "Send OTP (Auth Restricted)";
+                } else {
+                    showStatus("Init Error: " + error.code, true);
+                }
             }
+        }
+
+        // Batch Data for Bulk Registration
+        const BATCH_2023 = [
+            {name: "ABHISHEK AJMERA", mobile: "7222021798"}, {name: "ADITYA MANDUSIYA", mobile: "9602727885"}, {name: "ADITYA MAN HADA", mobile: "9462933488"},
+            {name: "AJAY NAGAR", mobile: "6377540641"}, {name: "AKSHAY SANKHLA", mobile: "6376070348"}, {name: "AKSHIT CHANDWADA", mobile: "9509228991"},
+            {name: "AMAN ANSARI", mobile: "9509305917"}, {name: "AMIT SHARMA", mobile: "8302823180"}, {name: "ANAGHA PARASHAR", mobile: "8769843123"},
+            {name: "ANISHA RAHAMAN", mobile: "9784285733"}, {name: "ANKIT YADAV", mobile: "9256729149"}, {name: "ANUSHKA KHANDELWA", mobile: "9511519292"},
+            {name: "ARAS KHAN", mobile: "8302681473"}, {name: "ARPITA CHOUDHARY", mobile: "7300395022"}, {name: "ARSHIN BAHAMNI", mobile: "7340450511"},
+            {name: "ARTI YADAV", mobile: "8829043041"}, {name: "BHARAT SUTHAR", mobile: "8107212733"}, {name: "BHUMIKA MAHESHWAR", mobile: "8529091909"},
+            {name: "CHIRAG", mobile: "9728871646"}, {name: "DEEPAK JINGONIA", mobile: "7073449697"}, {name: "Deepanshi PUROHIT", mobile: "8905744961"},
+            {name: "Devansh SINGH", mobile: "9057177000"}, {name: "DEVESH CHOUDHARY", mobile: "8690063602"}, {name: "DHARMENDRA JANGID", mobile: "9511337679"},
+            {name: "DIVYA SHARMA", mobile: "8852001823"}, {name: "EKANAND MEENA", mobile: "9352720974"}, {name: "GARVIT SHARMA", mobile: "8764361082"},
+            {name: "GUNJAN AGARWAL", mobile: "8529283646"}, {name: "HARIOM VERMA", mobile: "7976186521"}, {name: "HARSH", mobile: "7027853563"},
+            {name: "HARSHIT AGRAWAL", mobile: "9352682606"}, {name: "HIMANSHI MEENA", mobile: "9352508780"}, {name: "HIMANSHU MEENA", mobile: "9358430258"},
+            {name: "JAYANTILAL NINAMA", mobile: "8690246628"}, {name: "KANISHKA SHARMA", mobile: "6350287919"}, {name: "KAPIL JAT", mobile: "9461215952"},
+            {name: "KESHAV DODWARIYA", mobile: "7014863900"}, {name: "KHUSHI BHANAWAT", mobile: "8949577802"}, {name: "KOMAL AMETA", mobile: "8619097062"},
+            {name: "KOMAL RATHORE", mobile: "7878573649"}, {name: "KRISHAN KUMAR", mobile: "8000921998"}, {name: "KULDEEP BAIRWA", mobile: "9982237927"},
+            {name: "KUMARI HIMANSHI", mobile: "8529527711"}, {name: "LAKSHYA GOYAL", mobile: "8114459317"}, {name: "LALKISHAN BERA", mobile: "9257363168"},
+            {name: "LIPAKSHI MEHRA", mobile: "8003186547"}, {name: "LOKESH GURJAR", mobile: "8233290392"}, {name: "MANISH MEENA", mobile: "8302552028"},
+            {name: "MANISH VERMA", mobile: "8690074475"}, {name: "MANISH YADAV", mobile: "9116916704"}, {name: "MANOJ SAINI", mobile: "9166449758"},
+            {name: "MEGHNA GURSAHANEY", mobile: "9414234457"}, {name: "MEHVISH BANO", mobile: "8829020781"}, {name: "MO. AKRAM SILAWAT", mobile: "8302508060"},
+            {name: "MURLI DHAR YADAV", mobile: "9785290518"}, {name: "NAMAN PAHARIA", mobile: "9116835945"}, {name: "NEHA SAIN", mobile: "8302540945"},
+            {name: "NIKITA BIJARNIA", mobile: "9664289802"}, {name: "NITESH PRADHAN", mobile: "9352676033"}, {name: "NOUSHEEN KHAN", mobile: "8209371560"},
+            {name: "PADMA Bishnoi", mobile: "9509363690"}, {name: "POOJA CHOUDHARY", mobile: "9983200501"}, {name: "PRACHI SHARMA", mobile: "8239058985"},
+            {name: "PRAFUL DHOBI", mobile: "7413854015"}, {name: "PRAMOD DEWASI", mobile: "9587600936"}, {name: "PRANJAL JAIN", mobile: "9460951179"},
+            {name: "PRATYUSHA SINGH", mobile: "8852892749"}, {name: "PRAVEEN PUROHIT", mobile: "9928773500"}, {name: "PRIYA MALINDA", mobile: "8302726957"},
+            {name: "RADHESHYAM VERMA", mobile: "7727871333"}, {name: "RAJ GOSWAMI", mobile: "7417792456"}, {name: "RAMBALWAN MEENA", mobile: "9782499463"},
+            {name: "RITIK LABANA", mobile: "8239859446"}, {name: "SAGAR SHARMA", mobile: "7889746505"}, {name: "SARITA KANWAR", mobile: "9256685338"},
+            {name: "SATISH KUMAR", mobile: "6376028609"}, {name: "SAKSHAM MIRDHA", mobile: "9829133273"}, {name: "SHEETI AGRAWAL", mobile: "8209159945"},
+            {name: "SHREE KISHAN GAHLOT", mobile: "9667454698"}, {name: "SHREYANSH MUNDHRA", mobile: "8949538246"}, {name: "SIDDHARTH DEVAL", mobile: "8118804421"},
+            {name: "SUKHVEER", mobile: "7878948341"}, {name: "SUMAN DHAKER", mobile: "7425851288"}, {name: "SURENDRA KHOKHAR", mobile: "9828672360"},
+            {name: "TARUN KUMAR DHAKED", mobile: "8955744842"}, {name: "TUSHAR SEN", mobile: "7230832752"}, {name: "UDAY MAHESHWAR", mobile: "9462061972"},
+            {name: "UPASANA MEENA", mobile: "7728047992"}, {name: "UTKARSH SHUKLA", mobile: "7852802743"}, {name: "VAIBHAV SINGH", mobile: "6377613046"},
+            {name: "VANSH BAMANIYA", mobile: "9549212629"}, {name: "VATSAL NAMA", mobile: "8000557210"}, {name: "VIKASH YADAV", mobile: "7073114581"},
+            {name: "VIKRAM SAINI", mobile: "8890045853"}, {name: "VINIT CHOUDHARY", mobile: "8302177147"}, {name: "VIRENDRA CHOUDHARY", mobile: "9001501156"},
+            {name: "WAQAR AHMAD", mobile: "9012447209"}, {name: "YOGITA MEENA", mobile: "9079128249"}
+        ];
+
+        window.handleSendOTP = async function() {
+            if (!window.isAuthReady) return showStatus("Wait for system init...", true);
+            const mobile = document.getElementById('mobileNo').value.trim();
+            if (mobile.length !== 10) return showStatus("Enter a 10-digit number", true);
+
+            showStatus("Verifying Authorization...", false);
+            try {
+                // RULE 1: Use strict paths
+                const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'authorized_contacts'), where("mobile", "==", mobile));
+                const snap = await getDocs(q);
+                
+                if (snap.empty) {
+                    showStatus("Not authorized in registry.", true);
+                    return;
+                }
+
+                const userData = snap.docs[0].data();
+                window.validatedUserData = { mobile, name: userData.name };
+
+                const phoneNumber = `+91${mobile}`;
+                initRecaptcha(); // Ensure it's ready
+                const appVerifier = window.recaptchaVerifier;
+
+                const result = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
+                window.confirmationResult = result;
+                
+                document.getElementById('display-number').textContent = `+91 ${mobile}`;
+                document.getElementById('phone-section').classList.add('hidden');
+                document.getElementById('otp-section').classList.remove('hidden');
+                showStatus("OTP Sent!", false);
+            } catch (e) {
+                console.error(e);
+                showStatus("Auth Error: " + e.message, true);
+                if (window.grecaptcha) grecaptcha.reset();
+            }
+        };
+
+        window.handleVerifyOTP = async function() {
+            const code = document.getElementById('otpCode').value.trim();
+            if (code.length !== 6) return showStatus("Enter 6-digit OTP", true);
+            try {
+                await window.confirmationResult.confirm(code);
+                document.getElementById('validated-name').textContent = window.validatedUserData.name;
+                document.getElementById('otp-section').classList.add('hidden');
+                document.getElementById('feedback-section').classList.remove('hidden');
+                showStatus("Success!", false);
+            } catch (e) { showStatus("Invalid OTP.", true); }
+        };
+
+        window.submitDetailedFeedback = async function() {
+            const getRadioVal = (name) => {
+                const el = document.querySelector(`input[name="${name}"]:checked`);
+                return el ? el.value : null;
+            };
+
+            const data = {
+                batch: getRadioVal('batch'),
+                satisfaction: parseInt(document.getElementById('q-satisfaction').getAttribute('data-value')),
+                rolesDefined: getRadioVal('roles'),
+                decisionMaking: parseInt(document.getElementById('q-decisions').getAttribute('data-value')),
+                inclusion: getRadioVal('inclusion'),
+                commEffectiveness: parseInt(document.getElementById('q-comm').getAttribute('data-value')),
+                improveCoordination: document.getElementById('improve-comm').value.trim(),
+                eventsEngaging: getRadioVal('events'),
+                newInitiatives: document.getElementById('new-initiatives').value.trim(),
+                structuralChanges: document.getElementById('structural-changes').value.trim(),
+                mentorshipSystem: getRadioVal('mentor'),
+                frequency: getRadioVal('freq'),
+                finalComments: document.getElementById('final-comments').value.trim(),
+                timestamp: serverTimestamp()
+            };
+
+            if (!data.batch || data.satisfaction === 0) return showStatus("Complete required fields.", true);
+
+            try {
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'feedback_submissions'), {
+                    ...window.validatedUserData, ...data
+                });
+                document.getElementById('feedback-section').innerHTML = `<div class="text-center py-20"><h3 class="text-2xl font-black">Logged Successfully</h3><button onclick="location.reload()" class="mt-8 px-8 py-3 bg-black text-white rounded-full">Finish</button></div>`;
+            } catch (e) { showStatus("Error saving data.", true); }
         };
 
         window.addAuthorizedContact = async function() {
-            const adminName = document.getElementById('adminName').value.trim();
-            const adminMobile = document.getElementById('adminMobile').value.trim();
-            const adminMsgEl = document.getElementById('admin-message');
-
-            if (!adminName || adminMobile.length !== 10 || !/^\d+$/.test(adminMobile)) {
-                adminMsgEl.textContent = "Name and a 10-digit mobile number are required.";
-                adminMsgEl.className = "mt-2 text-xs text-center text-red-600";
-                return;
-            }
-
-            if (!window.db || !window.isAuthReady) {
-                 adminMsgEl.textContent = "Database not ready. Please wait for initialization.";
-                 adminMsgEl.className = "mt-2 text-xs text-center text-red-600";
-                 return;
-            }
-
+            const name = document.getElementById('adminName').value.trim();
+            const mobile = document.getElementById('adminMobile').value.trim();
+            if (!name || mobile.length !== 10) return;
             try {
-                // Use the mobile number as the document ID for easy lookup in validateContact()
-                const docRef = doc(window.db, `artifacts/${window.appId}/public/data/authorized_contacts`, adminMobile);
-                await setDoc(docRef, {
-                    mobile: adminMobile,
-                    name: adminName,
-                    addedBy: window.userId,
-                    timestamp: serverTimestamp()
-                });
-                adminMsgEl.textContent = `✅ ${adminName} (${adminMobile}) successfully added to Authorized Contacts.`;
-                adminMsgEl.className = "mt-2 text-xs text-center text-green-600";
-                document.getElementById('adminName').value = '';
-                document.getElementById('adminMobile').value = '';
-
-            } catch (e) {
-                console.error("Error adding admin contact: ", e);
-                adminMsgEl.textContent = "Error adding Authorized Contact.";
-                adminMsgEl.className = "mt-2 text-xs text-center text-red-600";
-            }
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'authorized_contacts', mobile), { name, mobile, timestamp: serverTimestamp() });
+                document.getElementById('admin-message').textContent = "Authorized: " + name;
+            } catch (e) { document.getElementById('admin-message').textContent = "Error"; }
         };
 
+        window.bulkImport2023 = async function() {
+            for (const s of BATCH_2023) {
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'authorized_contacts', s.mobile), { name: s.name, mobile: s.mobile, timestamp: serverTimestamp() });
+            }
+            document.getElementById('admin-message').textContent = "100 Students Added.";
+        };
 
-        // Start the application
+        window.setSimpleRating = (qId, value) => {
+            const container = document.getElementById(`q-${qId}`);
+            container.setAttribute('data-value', value);
+            document.getElementById(`score-${qId}`).textContent = `${value}/3`;
+            const btns = container.querySelectorAll('.rating-btn');
+            btns.forEach((btn, idx) => btn.classList.toggle('active', (idx + 1) === value));
+        };
+
+        window.resetAuth = () => location.reload();
+
+        function showStatus(msg, err) {
+            const el = document.getElementById('status-message');
+            el.textContent = msg;
+            el.className = `text-[9px] font-black uppercase tracking-widest text-center py-4 rounded-2xl ${err ? 'bg-red-50 text-red-600' : 'bg-indigo-50 text-indigo-600'}`;
+        }
+
         window.onload = initFirebase;
     </script>
 </body>
-</html>
+    </html>
